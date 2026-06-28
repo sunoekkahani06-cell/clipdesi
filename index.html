@@ -124,6 +124,8 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
 .modal input{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-family:'Poppins',sans-serif;font-size:0.88rem;outline:none;margin-bottom:12px;}
 .modal input:focus{border-color:var(--saffron);}
 .modal-btn{width:100%;background:var(--grad);color:white;border:none;border-radius:12px;padding:13px;font-weight:700;font-size:0.88rem;cursor:pointer;font-family:'Poppins',sans-serif;}
+.error-box{background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);border-radius:12px;padding:12px;margin-top:16px;font-size:0.82rem;color:#FF6B6B;display:none;}
+.error-box.show{display:block;}
 @media(max-width:680px){
   nav{padding:14px 16px;}
   .opts{grid-template-columns:1fr 1fr;}
@@ -153,10 +155,10 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
       <button class="go-btn" onclick="startProc()">⚡ Shorts बनाओ</button>
     </div>
     <div class="opts">
-      <div class="opt"><label>Clips कितने?</label><select><option>3 Clips</option><option>5 Clips</option><option>10 Clips</option></select></div>
-      <div class="opt"><label>Language</label><select><option>Hindi 🇮🇳</option><option>English</option><option>Hinglish 🔥</option><option>Tamil</option><option>Telugu</option></select></div>
+      <div class="opt"><label>Clips कितने?</label><select id="clipCount"><option value="3">3 Clips</option><option value="5">5 Clips</option><option value="10">10 Clips</option></select></div>
+      <div class="opt"><label>Language</label><select id="langSelect"><option value="Hindi">Hindi 🇮🇳</option><option value="English">English</option><option value="Hinglish">Hinglish 🔥</option><option value="Tamil">Tamil</option><option value="Telugu">Telugu</option></select></div>
       <div class="opt"><label>Caption Style</label><select><option>Bold Yellow</option><option>White Outline</option><option>Saffron Pop</option></select></div>
-      <div class="opt" onclick="tog('t1','l1')"><label>Auto Captions</label><div class="toggle-row"><span id="l1" style="font-size:0.85rem;font-weight:600">चाल</span><div class="toggle on" id="t1"></div></div></div>
+      <div class="opt" onclick="tog('t1','l1')"><label>Auto Captions</label><div class="toggle-row"><span id="l1" style="font-size:0.85rem;font-weight:600">चालू</span><div class="toggle on" id="t1"></div></div></div>
       <div class="opt" onclick="tog('t2','l2')"><label>Viral Ranking</label><div class="toggle-row"><span id="l2" style="font-size:0.85rem;font-weight:600">चालू</span><div class="toggle on" id="t2"></div></div></div>
       <div class="opt" onclick="tog('t3','l3')"><label>9:16 Auto Crop</label><div class="toggle-row"><span id="l3" style="font-size:0.85rem;font-weight:600">चालू</span><div class="toggle on" id="t3"></div></div></div>
     </div>
@@ -175,6 +177,8 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
       </div>
     </div>
 
+    <div class="error-box" id="errBox"></div>
+
     <div class="results" id="results">
       <div class="res-hdr"><h3>🎉 Shorts तैयार हैं!</h3><div class="res-cnt" id="rcnt">3 Clips</div></div>
       <div class="clips-grid" id="cgrid"></div>
@@ -190,11 +194,11 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
 </div>
 
 <div class="section">
-  <h2 class="sec-title">कसे काम करता है? 🤔</h2>
+  <h2 class="sec-title">कैसे काम करता है? 🤔</h2>
   <p class="sec-sub">तीन आसान steps — बस इतना!</p>
   <div class="steps-row">
-    <div class="step-box"><div class="step-ic">📋</div><h4>Link Paste करो</h4><p>कोई भी YouTube video का link paste करो। Long video, podcast, vlog — कुछ भी।</p></div>
-    <div class="step-box"><div class="step-ic">🤖</div><h4>AI सब करेगी</h4><p>AI best moments find करेगी, captions add करेगी और 9:16 में crop करेगी।</p></div>
+    <div class="step-box"><div class="step-ic">📋</div><h4>Link Paste करो</h4><p>कोई भी YouTube video का link paste करो। Long video, podcast, vlog — कछ भी।</p></div>
+    <div class="step-box"><div class="step-ic">🤖</div><h4>AI सब करगी</h4><p>AI best moments find करेगी, captions add करेगी और 9:16 में crop करेगी।</p></div>
     <div class="step-box"><div class="step-ic">📲</div><h4>Download करो</h4><p>तैयार Shorts download करो और YouTube Shorts, Instagram Reels पर post करो!</p></div>
   </div>
 </div>
@@ -203,7 +207,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
   <h2 class="sec-title">Features 🚀</h2>
   <p class="sec-sub">सब कुछ एक जगह</p>
   <div class="feat-grid">
-    <div class="feat"><div class="feat-ic">✂️</div><div><h4>Smart Auto-Clipping</h4><p>AI खुद best moments choose करती है viral potential के हिसाब से।</p></div></div>
+    <div class="feat"><div class="feat-ic">✂</div><div><h4>Smart Auto-Clipping</h4><p>AI खद best moments choose करती है viral potential के हसाब से।</p></div></div>
     <div class="feat"><div class="feat-ic">💬</div><div><h4>Hindi Captions</h4><p>Hindi, Hinglish, English में automatic subtitles। Bold और colorful।</p></div></div>
     <div class="feat"><div class="feat-ic">📱</div><div><h4>9:16 Auto Crop</h4><p>Video automatically vertical format में। Face tracking से speaker center में।</p></div></div>
     <div class="feat"><div class="feat-ic">🔥</div><div><h4>Viral Score</h4><p>हर clip को AI viral score देती है। पता चलेगा कौन सी clip post करनी है।</p></div></div>
@@ -216,7 +220,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
   <h2 class="sec-title">Pricing 💰</h2>
   <p class="sec-sub">Indian creators के लिए affordable plans</p>
   <div class="pricing-grid">
-    <div class="price-card"><div class="plan-name">Starter</div><div class="plan-price">₹0</div><div class="plan-period">हमेशा Free</div><ul class="plan-feats"><li>5 Shorts/month</li><li>Hindi captions</li><li>9:16 crop</li><li>720p download</li></ul><button class="plan-btn outline" onclick="document.getElementById('modal').classList.add('show')">Free शरू करो</button></div>
+    <div class="price-card"><div class="plan-name">Starter</div><div class="plan-price">₹0</div><div class="plan-period">हमेशा Free</div><ul class="plan-feats"><li>5 Shorts/month</li><li>Hindi captions</li><li>9:16 crop</li><li>720p download</li></ul><button class="plan-btn outline" onclick="document.getElementById('modal').classList.add('show')">Free शुरू करो</button></div>
     <div class="price-card pop"><div class="pop-badge">🔥 Most Popular</div><div class="plan-name">Creator</div><div class="plan-price">₹499</div><div class="plan-period">per month</div><ul class="plan-feats"><li>50 Shorts/month</li><li>10+ languages</li><li>1080p HD</li><li>Viral score</li><li>Priority support</li></ul><button class="plan-btn fill" onclick="document.getElementById('modal').classList.add('show')">7 Days Free Try</button></div>
     <div class="price-card"><div class="plan-name">Pro</div><div class="plan-price">₹999</div><div class="plan-period">per month</div><ul class="plan-feats"><li>Unlimited Shorts</li><li>4K download</li><li>All languages</li><li>Custom branding</li><li>API access</li></ul><button class="plan-btn outline" onclick="document.getElementById('modal').classList.add('show')">Pro शुरू करो</button></div>
   </div>
@@ -242,34 +246,70 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:32
 </div>
 
 <script>
+const BACKEND = 'https://clipdesi-production.up.railway.app';
+
 function tog(id,lid){const t=document.getElementById(id);const l=document.getElementById(lid);t.classList.toggle('on');l.textContent=t.classList.contains('on')?'चालू':'बंद';}
-const STEPS=[{id:'ps1',msg:'Video download हो रही है…',pct:20},{id:'ps2',msg:'AI analyze कर रही है…',pct:45},{id:'ps3',msg:'Best moments clip हो रहे हैं…',pct:65},{id:'ps4',msg:'Captions add हो रहे हैं…',pct:85},{id:'ps5',msg:'Final render…',pct:100}];
-const CLIPS=[{n:'01',t:'सबसे Viral Moment — Hook',d:'0:47',c:'यह सुनो ध्यान से...',v:98},{n:'02',t:'Emotional Peak — Max Retention',d:'0:53',c:'यह बात important है!',v:94},{n:'03',t:'Best Intro — Strong Opening',d:'0:38',c:'आज मैं बताऊंगा...',v:91},{n:'04',t:'Knowledge Bomb — Share worthy',d:'1:02',c:'क तुम जानते हो?',v:87}];
-function startProc(){
+
+const STEPS=[{id:'ps1',msg:'Video download हो रही है…',pct:20},{id:'ps2',msg:'AI analyze कर रही है…',pct:45},{id:'ps3',msg:'Best moments clip हो रह हैं…',pct:65},{id:'ps4',msg:'Captions add हो रहे हैं…',pct:85},{id:'ps5',msg:'Final render…',pct:100}];
+
+async function startProc(){
   const u=document.getElementById('ytUrl').value.trim();
   if(!u){document.getElementById('ytUrl').focus();return;}
+  const lang=document.getElementById('langSelect').value;
+  const cnt=parseInt(document.getElementById('clipCount').value);
+
   document.getElementById('proc').classList.add('show');
   document.getElementById('results').classList.remove('show');
+  document.getElementById('errBox').classList.remove('show');
+
   let i=0;
-  function run(){
+  function runSteps(){
     if(i>0){document.getElementById(STEPS[i-1].id).classList.remove('active');document.getElementById(STEPS[i-1].id).classList.add('done');}
-    if(i>=STEPS.length){showRes();return;}
+    if(i>=STEPS.length){return;}
     document.getElementById(STEPS[i].id).classList.add('active');
     document.getElementById('pmsg').textContent=STEPS[i].msg;
     document.getElementById('pfill').style.width=STEPS[i].pct+'%';
     document.getElementById('ppct').textContent=STEPS[i].pct+'%';
-    i++;setTimeout(run,1200);
+    i++;
+    if(i<STEPS.length) setTimeout(runSteps,2000);
   }
-  run();
+  runSteps();
+
+  try {
+    const res = await fetch(BACKEND+'/process', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({videoUrl:u, language:lang, clipCount:cnt})
+    });
+    const data = await res.json();
+    if(data.success){
+      showRes(data.clips);
+    } else {
+      showError(data.error || 'कुछ गलत हुआ। दोबारा try करो।');
+    }
+  } catch(err){
+    showError('Server से connect नहीं हो पाया। थोड़ी देर बाद try करो।');
+  }
 }
-function showRes(){
+
+function showError(msg){
+  document.getElementById('proc').classList.remove('show');
+  const eb=document.getElementById('errBox');
+  eb.textContent='❌ '+msg;
+  eb.classList.add('show');
+}
+
+function showRes(clips){
+  STEPS.forEach(s=>{document.getElementById(s.id).classList.remove('active');document.getElementById(s.id).classList.add('done');});
+  document.getElementById('pfill').style.width='100%';
   document.getElementById('proc').classList.remove('show');
   document.getElementById('results').classList.add('show');
-  document.getElementById('rcnt').textContent=CLIPS.length+' Clips Ready';
+  document.getElementById('rcnt').textContent=clips.length+' Clips Ready';
   const g=document.getElementById('cgrid');g.innerHTML='';
-  CLIPS.forEach((c,idx)=>{
+  clips.forEach((c,idx)=>{
     const d=document.createElement('div');d.className='clip';
-    d.innerHTML=`<div class="clip-thumb">${idx===0?'<div class="viral-badge">🔥 Most Viral</div>':''}<div class="clip-num">#${c.n}</div><div style="font-size:0.7rem;color:var(--muted)">Short Ready</div><div class="clip-cap">${c.c}</div><div class="clip-dur">${c.d}</div></div><div class="clip-info"><div class="clip-title">${c.t}</div><div class="clip-tags"><span class="ctag">🔥 ${c.v}% viral</span><span class="ctag">9:16 ✓</span><span class="ctag">Caption ✓</span></div></div><div class="clip-btns"><button class="btn-dl" onclick="alert('Account बनाओ पहले! 😊')">⬇️ Download</button><button class="btn-prev" onclick="alert('Preview के लिए login करो!')">▶</button></div>`;
+    const dur = c.duration ? Math.floor(c.duration/60)+':'+String(c.duration%60).padStart(2,'0') : '0:45';
+    d.innerHTML=`<div class="clip-thumb">${idx===0?'<div class="viral-badge">🔥 Most Viral</div>':''}<div class="clip-num">#0${idx+1}</div><div style="font-size:0.7rem;color:var(--muted)">Short Ready</div><div class="clip-cap">${c.caption||c.title}</div><div class="clip-dur">${dur}</div></div><div class="clip-info"><div class="clip-title">${c.title}</div><div class="clip-tags"><span class="ctag">🔥 ${c.viralScore}% viral</span><span class="ctag">9:16 ✓</span><span class="ctag">Caption ✓</span></div></div><div class="clip-btns"><button class="btn-dl" onclick="alert('Download के लिए account बनाओ! 😊')">⬇️ Download</button><button class="btn-prev" onclick="alert('Preview के लिए login करो!')">▶</button></div>`;
     g.appendChild(d);
   });
 }
