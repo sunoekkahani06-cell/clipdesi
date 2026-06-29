@@ -6,9 +6,14 @@ const fs = require('fs');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ limit: '500mb', extended: true }));
 
-const upload = multer({ dest: '/tmp/' });
+const upload = multer({
+  dest: '/tmp/',
+  limits: { fileSize: 500 * 1024 * 1024 }
+});
+
 const ASSEMBLYAI_KEY = process.env.ASSEMBLYAI_API_KEY;
 
 app.get('/', (req, res) => {
@@ -19,6 +24,10 @@ app.post('/upload', upload.single('video'), async (req, res) => {
   const filePath = req.file?.path;
   const language = req.body.language || 'Hindi';
   const clipCount = parseInt(req.body.clipCount) || 3;
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'Video file नहीं मिली। दोबारा try करो।' });
+  }
 
   try {
     // Step 1: Upload to AssemblyAI
@@ -31,7 +40,8 @@ app.post('/upload', upload.single('video'), async (req, res) => {
           authorization: ASSEMBLYAI_KEY,
           'content-type': 'application/octet-stream'
         },
-        maxBodyLength: Infinity
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
       }
     );
     const audioUrl = uploadRes.data.upload_url;
@@ -51,7 +61,7 @@ app.post('/upload', upload.single('video'), async (req, res) => {
     const transcriptId = submitRes.data.id;
     let transcript = null;
 
-    // Step 3: Poll
+    // Step 3: Poll for result
     for (let i = 0; i < 40; i++) {
       await new Promise(r => setTimeout(r, 3000));
       const poll = await axios.get(
@@ -62,7 +72,7 @@ app.post('/upload', upload.single('video'), async (req, res) => {
       if (poll.data.status === 'error') throw new Error('Transcription failed');
     }
 
-    if (!transcript) throw new Error('Timeout');
+    if (!transcript) throw new Error('Timeout — दोबारा try करो');
 
     // Step 4: Generate clips
     const chapters = transcript.chapters || [];
