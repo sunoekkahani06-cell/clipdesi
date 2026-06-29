@@ -1,52 +1,49 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+const upload = multer({ dest: '/tmp/' });
 const ASSEMBLYAI_KEY = process.env.ASSEMBLYAI_API_KEY;
-const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
 
 app.get('/', (req, res) => {
-  res.json({ status: 'ClipDesi Backend Running! 🚀' });
+  res.json({ status: 'ClipDesi Running! 🚀' });
 });
 
-app.post('/process', async (req, res) => {
-  const { videoUrl, language, clipCount } = req.body;
-  if (!videoUrl) return res.status(400).json({ error: 'YouTube URL required' });
+app.post('/upload', upload.single('video'), async (req, res) => {
+  const filePath = req.file?.path;
+  const language = req.body.language || 'Hindi';
+  const clipCount = parseInt(req.body.clipCount) || 3;
 
   try {
-    // YouTube video ID निकालो
-    const videoId = videoUrl.match(/(?:v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
-    if (!videoId) return res.status(400).json({ error: 'Invalid YouTube URL' });
-
-    // RapidAPI से transcript लो
-    const transcriptRes = await axios.get(
-      `https://youtube-transcript3.p.rapidapi.com/api/transcript`,
+    // Step 1: Upload to AssemblyAI
+    const audioData = fs.readFileSync(filePath);
+    const uploadRes = await axios.post(
+      'https://api.assemblyai.com/v2/upload',
+      audioData,
       {
-        params: { videoId },
         headers: {
-          'x-rapidapi-key': RAPIDAPI_KEY,
-          'x-rapidapi-host': 'youtube-transcript3.p.rapidapi.com'
-        }
+          authorization: ASSEMBLYAI_KEY,
+          'content-type': 'application/octet-stream'
+        },
+        maxBodyLength: Infinity
       }
     );
+    const audioUrl = uploadRes.data.upload_url;
 
-    const transcriptData = transcriptRes.data;
-    const fullText = transcriptData.transcript
-      ?.map(t => t.text).join(' ') || '';
-
-    if (!fullText) return res.status(400).json({ error: 'Transcript नहीं मिला' });
-
-    // AssemblyAI से chapters बनाओ
+    // Step 2: Transcribe
     const submitRes = await axios.post(
       'https://api.assemblyai.com/v2/transcript',
       {
-        audio_url: `https://www.youtube.com/watch?v=${videoId}`,
+        audio_url: audioUrl,
         language_code: language === 'Hindi' ? 'hi' : 'en',
-        auto_chapters: true
+        auto_chapters: true,
+        sentiment_analysis: true
       },
       { headers: { authorization: ASSEMBLYAI_KEY } }
     );
@@ -54,6 +51,7 @@ app.post('/process', async (req, res) => {
     const transcriptId = submitRes.data.id;
     let transcript = null;
 
+    // Step 3: Poll
     for (let i = 0; i < 40; i++) {
       await new Promise(r => setTimeout(r, 3000));
       const poll = await axios.get(
@@ -61,15 +59,17 @@ app.post('/process', async (req, res) => {
         { headers: { authorization: ASSEMBLYAI_KEY } }
       );
       if (poll.data.status === 'completed') { transcript = poll.data; break; }
-      if (poll.data.status === 'error') break;
+      if (poll.data.status === 'error') throw new Error('Transcription failed');
     }
 
-    // Chapters से clips बनाओ
-    const count = parseInt(clipCount) || 3;
+    if (!transcript) throw new Error('Timeout');
+
+    // Step 4: Generate clips
+    const chapters = transcript.chapters || [];
     let clips = [];
 
-    if (transcript?.chapters?.length > 0) {
-      clips = transcript.chapters.slice(0, count).map((ch, i) => ({
+    if (chapters.length > 0) {
+      clips = chapters.slice(0, clipCount).map((ch, i) => ({
         id: i + 1,
         title: ch.headline,
         summary: ch.summary,
@@ -78,25 +78,27 @@ app.post('/process', async (req, res) => {
         caption: ch.headline
       }));
     } else {
-      // Chapters नहीं मिले तो transcript से clips बनाओ
-      const words = fullText.split(' ');
-      const chunkSize = Math.floor(words.length / count);
-      for (let i = 0; i < count; i++) {
-        const chunk = words.slice(i * chunkSize, (i + 1) * chunkSize).join(' ');
+      const words = (transcript.text || '').split(' ');
+      const chunk = Math.floor(words.length / clipCount);
+      for (let i = 0; i < clipCount; i++) {
+        const text = words.slice(i * chunk, (i + 1) * chunk).join(' ');
         clips.push({
           id: i + 1,
           title: `Clip ${i + 1} — Best Moment`,
-          summary: chunk.substring(0, 100) + '...',
-          duration: 45 + Math.floor(Math.random() * 30),
+          duration: 30 + Math.floor(Math.random() * 30),
           viralScore: Math.floor(Math.random() * 20) + 80,
-          caption: chunk.substring(0, 50)
+          caption: text.substring(0, 60)
         });
       }
     }
 
+    // Cleanup
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
     res.json({ success: true, clips });
 
   } catch (err) {
+    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
     console.error(err.message);
     res.status(500).json({ error: err.message });
   }
